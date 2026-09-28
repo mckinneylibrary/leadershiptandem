@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790618019294,
+      "tag": "0000_coaching_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790618973657,
+      "tag": "0001_starter_templates",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790619711101,
+      "tag": "0002_workspace_branding",
+      "breakpoints": true
+    }
+  ]
+}
