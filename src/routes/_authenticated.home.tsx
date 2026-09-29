@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/lib/workspace";
 import { daysSince, fetchTemplates, fmtDate, relationLabel, startMeeting, type Pairing } from "@/lib/coaching";
+import { AddToCalendar } from "@/components/AddToCalendar";
+import { nextSlot } from "@/lib/calendar";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({ meta: [{ title: "Your 1-on-1s — Tandem" }, { name: "description", content: "Your people, meetings and open action items." }] }),
@@ -110,6 +112,14 @@ function Home() {
                   <Link to="/growth/$pairingId" params={{ pairingId: p.id }} className="text-sm text-muted-foreground hover:text-foreground">
                     Timeline
                   </Link>
+                  <AddToCalendar
+                    label="Schedule"
+                    title={`1-on-1: ${memberName(p.leader_id)} & ${memberName(p.report_id)}`}
+                    description={`A regular 1-on-1. Agenda and notes live in ${workspace.brand_name || "Tandem"}.`}
+                    start={nextSlot(last?.held_on, p.cadence_days)}
+                    repeatEveryDays={p.cadence_days}
+                    allowRepeat
+                  />
                   <button
                     onClick={() => start.mutate(p)}
                     disabled={start.isPending}

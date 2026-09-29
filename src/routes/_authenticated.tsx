@@ -1,3 +1,4 @@
+import logoMark from "@/assets/logo-mark.png";
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
@@ -53,9 +54,7 @@ function Shell() {
             {workspace.logo_url ? (
               <img src={workspace.logo_url} alt="" className="h-7 w-7 rounded-lg object-contain" />
             ) : (
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground">
-                <div className="h-3.5 w-3.5 rotate-45 border-2 border-background" />
-              </div>
+              <img src={logoMark} alt="Tandem" className="h-7 w-7 rounded-lg" />
             )}
             <span className="font-serif text-xl italic">{brand}</span>
           </Link>

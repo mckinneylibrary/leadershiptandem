@@ -61,6 +61,18 @@ export async function fetchTemplates(workspaceId: string): Promise<Template[]> {
 export async function startMeeting(pairing: Pairing, userId: string, templates: Template[]) {
   const published = templates.filter((t) => t.published);
   const t = published.find((x) => x.id === pairing.template_id) ?? published[0];
+  // Reuse an open meeting from today so both people land in the same 1-on-1.
+  const today = new Date().toISOString().slice(0, 10);
+  const { data: existing } = await supabase
+    .from("meetings")
+    .select("id")
+    .eq("pairing_id", pairing.id)
+    .eq("status", "open")
+    .gte("held_on", today)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (existing) return existing.id;
   const { data, error } = await supabase
     .from("meetings")
     .insert({

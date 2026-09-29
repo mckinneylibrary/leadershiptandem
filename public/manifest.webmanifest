@@ -1,0 +1,15 @@
+{
+  "name": "Tandem — 1-on-1 coaching",
+  "short_name": "Tandem",
+  "description": "Free, open-source 1-on-1 coaching for leaders at every level.",
+  "start_url": "/home",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

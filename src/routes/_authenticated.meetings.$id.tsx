@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/lib/workspace";
 import { asList, fmtDate, type Pairing } from "@/lib/coaching";
 import { suggestActionItems, summarizeMeeting } from "@/lib/ai.functions";
+import { AddToCalendar } from "@/components/AddToCalendar";
+import { nextSlot } from "@/lib/calendar";
 
 export const Route = createFileRoute("/_authenticated/meetings/$id")({
   head: () => ({ meta: [{ title: "1-on-1 — Tandem" }, { name: "description", content: "Agenda, notes and action items." }] }),
@@ -21,7 +23,7 @@ function MeetingPage() {
   const qc = useQueryClient();
 
   const meeting = useQuery({
-    queryKey: ["meeting", id],
+    queryKey: ["meeting", id], refetchInterval: 5000,
     queryFn: async () => {
       const { data, error } = await supabase.from("meetings").select("*").eq("id", id).single();
       if (error) throw error;
@@ -30,16 +32,16 @@ function MeetingPage() {
     },
   });
   const agenda = useQuery({
-    queryKey: ["agenda", id],
+    queryKey: ["agenda", id], refetchInterval: 5000,
     queryFn: async () => (await supabase.from("agenda_items").select("*").eq("meeting_id", id).order("created_at")).data ?? [],
   });
   const notes = useQuery({
-    queryKey: ["notes", id],
+    queryKey: ["notes", id], refetchInterval: 5000,
     queryFn: async () => (await supabase.from("meeting_notes").select("*").eq("meeting_id", id)).data ?? [],
   });
   const pairingId = meeting.data?.pairing_id;
   const actions = useQuery({
-    queryKey: ["actions", pairingId, id],
+    queryKey: ["actions", pairingId, id], refetchInterval: 5000,
     enabled: !!pairingId,
     queryFn: async () =>
       (await supabase.from("action_items").select("*").eq("pairing_id", pairingId!).or(`done_at.is.null,meeting_id.eq.${id}`).order("created_at")).data ?? [],
@@ -108,6 +110,21 @@ function MeetingPage() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["meeting", id] }),
   });
+  const navigate = useNavigate();
+  const deleteMeeting = useMutation({
+    mutationFn: async () => {
+      // Agenda items and notes are removed automatically with the meeting;
+      // action items are kept and simply detached from it.
+      const { error } = await supabase.from("meetings").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["meetings"] });
+      toast("1-on-1 deleted.");
+      navigate({ to: "/home" });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const runSummary = useMutation({
     mutationFn: () => summarize({ data: { meetingId: id } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["meeting", id] }),
@@ -144,12 +161,31 @@ function MeetingPage() {
           </p>
         </div>
         {isParty && (
-          <button
-            onClick={() => setStatus.mutate(m.status === "done" ? "open" : "done")}
-            className="rounded-md border border-input bg-card px-4 py-2 text-sm font-medium"
-          >
-            {m.status === "done" ? "Reopen" : "Mark as done"}
-          </button>
+          <div className="flex items-center gap-4">
+            <AddToCalendar
+              label="Add to calendar"
+              title={`1-on-1: ${memberName(p.leader_id)} & ${memberName(p.report_id)}`}
+              description={`Agenda and notes live in ${workspace.brand_name || "Tandem"}: ${typeof window !== "undefined" ? window.location.href : ""}`}
+              start={nextSlot(m.held_on, p.cadence_days)}
+              repeatEveryDays={p.cadence_days}
+              allowRepeat
+            />
+            <button
+              onClick={() => setStatus.mutate(m.status === "done" ? "open" : "done")}
+              className="rounded-md border border-input bg-card px-4 py-2 text-sm font-medium"
+            >
+              {m.status === "done" ? "Reopen" : "Mark as done"}
+            </button>
+            <button
+              onClick={() => {
+                if (window.confirm("Delete this 1-on-1 and all its notes and agenda items? Action items are kept. This can't be undone.")) deleteMeeting.mutate();
+              }}
+              disabled={deleteMeeting.isPending}
+              className="rounded-md border border-input bg-card px-4 py-2 text-sm font-medium text-destructive"
+            >
+              {deleteMeeting.isPending ? "Deleting…" : "Delete"}
+            </button>
+          </div>
         )}
       </div>
 
@@ -188,7 +224,7 @@ function MeetingPage() {
             <div className="mt-2 min-h-32 whitespace-pre-wrap rounded-md border bg-muted/50 p-3 text-sm">{n.body || <span className="text-muted-foreground">Nothing yet.</span>}</div>
           </div>
         ))}
-        {isLeader && (
+        {(
           <NoteEditor key={`p-${myPrivate?.id ?? "new"}`} label="Private notes" hint="Only you can see these" meetingId={id} userId={userId} visibility="private" initial={myPrivate?.body ?? ""} />
         )}
       </section>

@@ -1,3 +1,4 @@
+import logoMark from "@/assets/logo-mark.png";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarCheck, Lock, MessagesSquare, Sparkles, TrendingUp, ListChecks } from "lucide-react";
 
@@ -36,7 +37,7 @@ const features = [
   {
     icon: Lock,
     title: "Private when it matters",
-    body: "Shared notes for both of you. Private notes only the leader can see.",
+    body: "Shared notes for both of you. Private notes only the writer can see.",
   },
   {
     icon: ListChecks,
@@ -60,9 +61,7 @@ function Landing() {
     <div className="min-h-screen">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground">
-            <div className="h-4 w-4 rotate-45 border-2 border-background" />
-          </div>
+          <img src={logoMark} alt="Tandem" className="h-8 w-8 rounded-lg" />
           <span className="font-serif text-xl italic">Tandem</span>
         </div>
         <Link
@@ -106,8 +105,14 @@ function Landing() {
               >
                 Start your first 1-on-1
               </Link>
+              <Link
+                to="/demo"
+                className="w-full rounded-full border border-primary/40 bg-transparent px-8 py-4 font-medium text-foreground transition-all hover:bg-primary/10 sm:w-auto"
+              >
+                Try the demo
+              </Link>
               <a
-                href="https://github.com"
+                href="https://github.com/mckinneylibrary/leadershiptandem"
                 target="_blank"
                 rel="noreferrer"
                 className="w-full rounded-full border border-border bg-transparent px-8 py-4 font-medium text-foreground/80 transition-all hover:bg-secondary sm:w-auto"
@@ -152,9 +157,7 @@ function Landing() {
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-6 py-12 md:flex-row">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground">
-              <div className="h-4 w-4 rotate-45 border-2 border-background" />
-            </div>
+            <img src={logoMark} alt="Tandem" className="h-8 w-8 rounded-lg" />
             <span className="font-serif text-lg italic text-foreground">Tandem</span>
           </div>
           <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
